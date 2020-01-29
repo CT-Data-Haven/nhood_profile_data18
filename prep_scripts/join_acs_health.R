@@ -1,6 +1,17 @@
 library(tidyverse)
 library(cwi)
 
+col_n_distinct <- function(.data, col) {
+  n <- .data %>%
+    pull({{ col }}) %>%
+    n_distinct(na.rm = TRUE)
+  if (n == 1) {
+    .data %>% select(-{{ col }})
+  } else {
+    .data
+  }
+}
+
 cdc_meta <- read_csv("_utils/cdc_indicators.txt")
 
 acs <- bind_rows(
@@ -35,6 +46,7 @@ iwalk(prof_list, function(df, city) {
     select(-indicator, -topic, -city) %>%
     distinct(name, display, year, .keep_all = TRUE) %>%
     pivot_wider(names_from = c(display, year)) %>%
+    col_n_distinct(town) %>%
     write_csv(str_glue("to_distro/{city}_nhood_2018_acs_health_comb.csv"))
 })
   
