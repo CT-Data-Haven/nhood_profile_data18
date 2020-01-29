@@ -35,7 +35,7 @@ iwalk(prof_list, function(df, city) {
     select(-indicator, -topic, -city) %>%
     distinct(name, display, year, .keep_all = TRUE) %>%
     pivot_wider(names_from = c(display, year)) %>%
-    write_csv(str_glue("output_data/{city}_nhood_2018_acs_health_comb.csv"))
+    write_csv(str_glue("to_distro/{city}_nhood_2018_acs_health_comb.csv"))
 })
   
 saveRDS(prof_list, "output_data/all_nhood_2018_acs_health_comb.rds")
