@@ -17,7 +17,7 @@ nhood_req <- list.files("to_distro", pattern = "nhood_2018.+\\.csv$") %>%
     url <- paste0("https://github.com/CT-Data-Haven/nhood_profile_data18/blob/master/to_distro/", path)
     file <- paste(city, "nhood_2018.csv", sep = "_")
     print(url)
-    file_create_or_update_request(file_name = path, description = desc, labels = list("clean data"), url = url)
+    file_create_or_update_request(file_name = path, description = desc, labels = list("clean data", "sample"), url = url)
   })
 
 walk(nhood_req, ~update_dataset(dataset, dataset_update_request(files = list(.))))

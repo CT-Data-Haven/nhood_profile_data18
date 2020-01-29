@@ -18,25 +18,27 @@ col_n_distinct <- function(.data, col) {
   }
 }
 
-# t for table only, m for map
-prof_list <- c(
-  readRDS(str_glue("output/acs_to_prep_for_viz_{acs_year}.rds")),
-  readRDS(str_glue("output/nhv_acs_to_prep_for_viz_{acs_year}.rds")) %>% map(mutate, town = NA)
-) %>%
-  map(mutate, indicator = indicator %>%
-        str_replace(" ", "X") %>%
-        str_replace_all(c("^estimate" = "t", "^share" = "m"))) %>%
-  map(mutate, level = fct_relabel(level, str_remove, "s$"))
+prof_list <- readRDS(str_glue("output_data/all_nhood_{acs_year}_acs_health_comb.rds")) %>%
+  map(mutate_at, vars(topic, level, indicator), as_factor)
+
+lvls <- bind_rows(prof_list) %>%
+  distinct(level) %>%
+  mutate(l = paste(row_number(), level, sep = "_")) %>%
+  select(l, level) %>%
+  deframe() %>%
+  as.list()
 
 # nested json, all cities
 prof_wide <- prof_list %>%
-  map(select, -display, -city) %>%
+  map(select, -display, -city, -year) %>%
+  map(col_n_distinct, town) %>%
   map(rename, location = name) %>%
+  map(mutate, level = fct_recode(level, !!!lvls)) %>%
   map(~split(., .$topic)) %>%
   map_depth(2, pivot_wider, names_from = indicator) %>%
-  map_depth(2, col_n_distinct, town) %>%
   map_depth(2, select, -topic) %>%
   .[sort(names(.))]
+
 
 # meta
 # topics:
@@ -52,8 +54,7 @@ meta <- bind_rows(prof_list) %>%
   mutate(type = str_extract(indicator, "^[a-z]+(?=X)")) %>%
   rename(location = name) %>%
   distinct(topic, indicator, type, display) %>%
-  mutate_at(vars(type, indicator), as_factor) %>%
-  mutate(format = fct_recode(type, "," = "t", ".0%" = "m")) %>%
+  mutate(format = if_else(topic == "life_expectancy", ".1f", recode(type, "t" = ",", "m" = ".0%"))) %>%
   mutate(displayTopic = topic %>%
            fct_relabel(camiller::clean_titles) %>%
            fct_relabel(str_replace, "(?<=^Income) ", " by age: ") %>%
@@ -62,9 +63,6 @@ meta <- bind_rows(prof_list) %>%
   map(function(tdf) {
     idf <- tdf %>%
       select(-topic, -displayTopic)
-      # filter(type == "m") %>%
-      # split(.$indicator, drop = TRUE) %>%
-      # map(select, display, type, format)
       
     list(
       display = as.character(unique(tdf$displayTopic)),
@@ -78,7 +76,6 @@ write_json(meta, str_glue("to_viz/nhood_meta_{acs_year}.json"), auto_unbox = TRU
 
 shps <- list.files("input_data/shapes", full.names = TRUE) %>%
   set_names(str_extract, "\\w+(?=_topo)") %>%
-  # .[c("bridgeport", "stamford", "hartford")] %>%
   map(topojson_read) %>%
   # map(st_as_sf) %>%
   map(select, name, town, geometry) %>%
