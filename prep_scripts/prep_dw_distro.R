@@ -12,7 +12,7 @@ hdrs <- read_csv("_utils/indicator_headings.txt") %>%
 nhood_req <- list.files("to_distro", pattern = "nhood_2018.+\\.csv$") %>%
   map(function(path) {
     city <- str_extract(path, "^\\w+(?=_nhood_2018)")
-    desc <- paste("ACS basic indicators by neighborhood, 2018 5yr estimates,", 
+    desc <- paste("ACS basic indicators, CDC life expectancy estimates, 500 Cities Project averages,", 
                   camiller::clean_titles(city, cap_all = TRUE))
     url <- paste0("https://github.com/CT-Data-Haven/nhood_profile_data18/blob/master/to_distro/", path)
     file <- paste(city, "nhood_2018.csv", sep = "_")

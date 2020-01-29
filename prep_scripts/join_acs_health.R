@@ -18,10 +18,10 @@ acs <- bind_rows(
   readRDS(str_glue("input_data/acs_to_prep_for_viz_2018.rds")),
   readRDS(str_glue("input_data/nhv_acs_to_prep_for_viz_2018.rds")) %>% map(mutate, town = NA)
 ) %>%
-  distinct(level, topic, display, name, .keep_all = TRUE) %>%
   mutate(level = fct_relabel(level, ~str_match(., "([a-z]*?)s?$")[, 2]),
          year = "2018",
-         city = if_else(name == "Connecticut", NA_character_, city))
+         city = if_else(name == "Connecticut", NA_character_, city)) %>%
+  distinct(level, topic, city, display, name, .keep_all = TRUE)
 
 health <- readRDS("output_data/nhood_health_indicators_2019.rds") %>%
   left_join(cdc_meta %>% select(indicator, question = display, display = new_display), by = "question") %>%
