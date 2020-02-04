@@ -23,3 +23,4 @@ nhood_req <- list.files("to_distro", pattern = "nhood_2018.+\\.csv$") %>%
 walk(nhood_req, ~update_dataset(dataset, dataset_update_request(files = list(.))))
 
 dwapi::update_dataset(dataset, dataset_update_request(license_string = "CC-BY-SA"))
+dwapi::sync(dataset)

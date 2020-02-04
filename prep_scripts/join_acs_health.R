@@ -45,8 +45,8 @@ iwalk(prof_list, function(df, city) {
   df %>%
     select(-indicator, -topic, -city) %>%
     distinct(name, display, year, .keep_all = TRUE) %>%
-    pivot_wider(names_from = c(display, year)) %>%
     col_n_distinct(town) %>%
+    pivot_wider(names_from = c(display, year)) %>%
     write_csv(str_glue("to_distro/{city}_nhood_2018_acs_health_comb.csv"))
 })
   
