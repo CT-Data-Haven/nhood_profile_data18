@@ -34,6 +34,7 @@ prof_wide <- prof_list %>%
   map(col_n_distinct, town) %>%
   map(rename, location = name) %>%
   map(mutate, level = fct_recode(level, !!!lvls)) %>%
+  map(arrange, level, location) %>%
   map(~split(., .$topic)) %>%
   map_depth(2, pivot_wider, names_from = indicator) %>%
   map_depth(2, select, -topic) %>%
