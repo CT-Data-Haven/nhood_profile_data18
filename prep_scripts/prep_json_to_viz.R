@@ -109,3 +109,33 @@ dwurls <- read_csv("_utils/dataworld_urls.csv") %>%
 
 lst(sources, dwurls) %>%
   jsonlite::write_json("to_viz/sources_meta.json", auto_unbox = TRUE)
+
+
+# geography meta
+prof_wide$new_haven %>%
+  bind_rows() %>%
+  distinct(level, location) %>%
+  filter(str_detect(level, "region")) %>%
+  pull(location) %>%
+  str_subset("^[\\w\\s]+County$", negate = TRUE)
+
+
+geo_meta <- prof_wide %>%
+  map(function(df) {
+    df %>%
+      bind_rows() %>%
+      distinct(level, location) %>%
+      filter(str_detect(level, "region")) %>%
+      pull(location) %>%
+      str_subset("^[\\w\\s]+County$", negate = TRUE)
+  }) %>%
+  compact() %>%
+  map(function(r) {
+    region <- r
+    towns <- cwi::regions[[r]]
+    def <- paste(towns, collapse = ", ") %>%
+      str_replace("(?<=,)\\s(?=[\\w\\s]+$)", " and ")
+    list(lst(region, def))
+  })
+
+jsonlite::write_json(geo_meta, "to_viz/geography_meta.json", auto_unbox = TRUE)
